@@ -1,4 +1,5 @@
-import { Colors, Edge } from "./graph"
+import Edge from "./edge"
+import { Colors } from "./graph"
 
 export default class Vertex {
     name: string

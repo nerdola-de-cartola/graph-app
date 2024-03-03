@@ -52,7 +52,7 @@ function newVertex(x: number, y: number, ctx: any, name: string = '') {
 function newEdge(vertex1: Circle, vertex2: Circle, ctx: any) {
   const thickness = 3;
 
-  const edge = g.addEdge(vertex1.name, vertex2.name, 1);
+  const edge = g.addEdge(vertex1, vertex2);
 
   if (!edge) return;
 
@@ -205,7 +205,8 @@ export default function App() {
       case Modes.deleteEdge:
         if (!touchEdge.current) return;
 
-        g.deleteEdge(touchEdge.current.edge);
+        
+        touchEdge.current.delete();
         const i = circles.indexOf(touchEdge.current.circle1);
         circles[i].deleteLine(touchEdge.current);
         reDraw(context.current, canvas.current.width, canvas.current.height);

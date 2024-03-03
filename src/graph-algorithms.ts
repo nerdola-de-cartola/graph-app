@@ -1,5 +1,6 @@
-import { Colors, ExplicityEdge, Graph } from "./graph";
-import { Vertex } from "./vertex";
+import Edge, { ExplicityEdge } from "./edge";
+import Graph, { Colors } from "./graph";
+import Vertex from "./vertex";
 
 export function Kruskal(graph: Graph): Graph {
     const mst = new Graph();
@@ -16,11 +17,7 @@ export function Kruskal(graph: Graph): Graph {
             vertex.component = vertex;
             edge.vertex.component = edge.vertex;
 
-            availableEdges.push({
-                vertex1: vertex,
-                vertex2: edge.vertex,
-                weight: edge.weight
-            })
+            availableEdges.push(new ExplicityEdge(vertex, edge.vertex, edge.weight));
 
             const edge2 = edge.vertex.edges.find((edge) => edge.vertex.name === vertex.name);
 
@@ -77,11 +74,7 @@ export function Kruskal(graph: Graph): Graph {
     for (let i = 0; i < graph.vertices.length - 1; i++) {
         const { vertex1, vertex2, weight } = findNextVertices();
 
-        mst.addEdge(
-            vertex1.name,
-            vertex2.name,
-            weight
-        );
+        mst.addEdge(vertex1, vertex2, weight);
 
         joinComponents(vertex1.component, vertex2.component)
     }
@@ -116,24 +109,26 @@ export function Prim(graph: Graph): Graph {
 
     let currentVertex = graph.vertices[0];
     currentVertex.used = true;
+
+    const addEdgeToAvailableEdges = (currentVertex: Vertex, edge: Edge) => {
+
+        if (edge.used) return;
+
+        availableEdges.push(new ExplicityEdge(currentVertex, edge.vertex, edge.weight));
+
+        const edge2 = edge.vertex.edges.find((edge) => edge.vertex.name === currentVertex.name);
+
+        if (!edge2) throw new Error("Aresta inexistente");
+
+        edge.used = true;
+        edge2.used = true;
+    }
+
     for (let i = 0; i < graph.vertices.length - 1; i++) {
-        currentVertex.edges.forEach((edge) => {
-
-            if (edge.used) return;
-
-            availableEdges.push({
-                vertex1: currentVertex,
-                vertex2: edge.vertex,
-                weight: edge.weight
-            })
-
-            const edge2 = edge.vertex.edges.find((edge) => edge.vertex.name === currentVertex.name);
-
-            if (!edge2) throw new Error("Aresta inexistente");
-
-            edge.used = true;
-            edge2.used = true;
-        })
+        // currentVertex.edges.forEach(edge => f(currentVertex, e))
+        for(let edge of currentVertex.edges) {
+            addEdgeToAvailableEdges(currentVertex, edge);
+        }
 
         availableEdges.sort((edge1, edge2) => edge1.weight - edge2.weight);
 
@@ -141,12 +136,7 @@ export function Prim(graph: Graph): Graph {
 
         mst.addVertex(vertex1);
         mst.addVertex(vertex2);
-
-        mst.addEdge(
-            vertex1.name,
-            vertex2.name,
-            weight
-        );
+        mst.addEdge(vertex1, vertex2, weight);
 
         currentVertex = vertex1.used ? vertex2 : vertex1;
 
@@ -164,8 +154,6 @@ export function Prim(graph: Graph): Graph {
 
     return mst;
 }
-
-
 
 function dfsPath(vertex: Vertex) {
     vertex.textColor = Colors.blue

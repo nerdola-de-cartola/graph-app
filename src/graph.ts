@@ -1,3 +1,4 @@
+import Edge from "./edge";
 import Vertex from "./vertex"
 
 export enum Colors {
@@ -6,25 +7,6 @@ export enum Colors {
     standard = "\x1b[0m"
 }
 
-enum EdgeType {
-    tree,
-    direct,
-    return,
-    cross
-}
-
-export interface Edge {
-    vertex: Vertex
-    weight: number
-    used?: boolean
-    type?: EdgeType
-}
-
-export interface ExplicityEdge {
-    vertex1: Vertex
-    vertex2: Vertex
-    weight: number
-}
 
 export default class Graph {
     vertices: Vertex[]
@@ -68,20 +50,20 @@ export default class Graph {
     }
 
     addEdge(
-        firstVertex: string,
-        secondVertex: string,
-        weight: number
+        firstVertex: Vertex,
+        secondVertex: Vertex,
+        weight?: number
     ): Edge | undefined {
         if (firstVertex === secondVertex) {
             return undefined;
         }
     
         const existsFirstVertex = this.vertices.some((vertex) =>
-            vertex.name === firstVertex
+            vertex === firstVertex
         );
     
         const existsSecondVertex = this.vertices.some((vertex) =>
-            vertex.name === secondVertex
+            vertex === secondVertex
         );
     
         if (!existsFirstVertex || !existsSecondVertex) {
@@ -91,9 +73,9 @@ export default class Graph {
         let result = undefined;
     
         this.vertices.forEach((vertex) => {
-            if (vertex.name === firstVertex) {
+            if (vertex === firstVertex) {
                 const repeatedEdge = vertex.edges.some((edge) =>
-                    edge.vertex.name === secondVertex
+                    edge.vertex === secondVertex
                 )
     
                 if (repeatedEdge) {
@@ -101,19 +83,16 @@ export default class Graph {
                     return;
                 }
     
-                const target = this.vertices.find((vertex) => vertex.name === secondVertex);
+                const target = this.vertices.find((vertex) => vertex === secondVertex);
     
                 if (target) {
-                    const edge = {
-                        vertex: target,
-                        weight
-                    }
+                    const edge = new Edge(target, weight);
                     vertex.edges.push(edge)
                     result = edge;
                 }
-            } else if (vertex.name === secondVertex) {
+            } else if (vertex === secondVertex) {
                 const repeatedEdge = vertex.edges.some((edge) =>
-                    edge.vertex.name === firstVertex
+                    edge.vertex === firstVertex
                 )
     
                 if (repeatedEdge) {
@@ -121,16 +100,11 @@ export default class Graph {
                     return;
                 }
     
-                const target = this.vertices.find((vertex) => vertex.name === firstVertex);
+                const target = this.vertices.find((vertex) => vertex === firstVertex);
     
                 if (target) {
-                    const edge = {
-                        vertex: target,
-                        weight
-                    };
-    
+                    const edge = new Edge(target, weight);
                     vertex.edges.push(edge)
-    
                     result = edge;
                 }
             }
@@ -139,20 +113,6 @@ export default class Graph {
         return result;
     }
     
-    deleteEdge(edgeToBeRemoved: Edge) {
-        for(const vertex of this.vertices) {
-    
-            for (let index = 0; index < vertex.edges.length; index++) {
-                const edge = vertex.edges[index];
-    
-                if(edge === edgeToBeRemoved) {
-                    edge.vertex.edges = edge.vertex.edges.filter(e => e.vertex !== vertex)
-                    vertex.edges.splice(index, 1);
-                }
-            }
-        }
-    }
-
     degreeSequence(): number[] {
         return this
             .vertices
