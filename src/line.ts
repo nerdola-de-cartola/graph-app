@@ -1,5 +1,5 @@
 import Circle from "./circle"
-import Edge, { ExplicityEdge } from "./edge";
+import { ExplicityEdge } from "./edge";
 
 const DEFAULT_COLOR = 'black';
 
@@ -9,7 +9,7 @@ export default class Line extends ExplicityEdge {
     thickness: number
     color: string
   
-    constructor(c1: Circle, c2: Circle, thickness: number, e: Edge, color: string = DEFAULT_COLOR) {
+    constructor(c1: Circle, c2: Circle, thickness: number, color: string = DEFAULT_COLOR) {
       super(c1, c2);
       this.circle1 = c1;
       this.circle2 = c2;
@@ -18,7 +18,6 @@ export default class Line extends ExplicityEdge {
     }
   
     draw(ctx: any) {
-      console.log(this);
       ctx.beginPath();
       ctx.strokeStyle = this.color;
       ctx.lineWidth = this.thickness;

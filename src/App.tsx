@@ -9,7 +9,8 @@ enum Modes {
   newVertex,
   newEdge,
   deleteVertex,
-  deleteEdge
+  deleteEdge,
+  connectedComponents
 }
 
 const nameModes = [
@@ -17,7 +18,8 @@ const nameModes = [
   "Add vertex",
   "Add edge",
   "Delete vertex",
-  "Delete edge"
+  "Delete edge",
+  "Highlight connected components"
 ]
 
 const g = new Graph();
@@ -56,17 +58,48 @@ function newEdge(vertex1: Circle, vertex2: Circle, ctx: any) {
 
   if (!edge) return;
 
-  const line = new Line(vertex1, vertex2, thickness, edge);
+  const line = new Line(vertex1, vertex2, thickness);
   vertex1.addLine(line)
   vertex1.drawLines(ctx);
 }
 
-function reDraw(ctx: any, width: number, height: number) {
-  ctx.clearRect(0, 0, width, height)
-  circles.forEach(circle => {
-    circle.drawLines(ctx);
-    circle.draw(ctx);
-  })
+function randomHexadecimalColor() {
+  const color =  Math.floor(Math.random()*16777215).toString(16);
+  return `#${color}`
+}
+
+function drawPerimeter(ctx: any, dots: Circle[]) {
+  const thickness = 3;
+  const color = randomHexadecimalColor();
+
+  if(dots.length === 0) return;
+
+  const minX = Math.min(...dots.map(dot => dot.x));
+  const minY = Math.min(...dots.map(dot => dot.y));
+  const maxX = Math.max(...dots.map(dot => dot.x));
+  const maxY = Math.max(...dots.map(dot => dot.y));
+
+  const radius = Math.max(...dots.map(dot => dot.radius)) + 10;
+
+  const lt = new Circle('lt', minX-radius, minY-radius, 1);
+  const rt = new Circle('rt', maxX+radius, minY-radius, 1);
+  const rb = new Circle('rb', maxX+radius, maxY+radius, 1);
+  const lb = new Circle('lb', minX-radius, maxY+radius, 1);
+
+  const perimeterLines = [
+    new Line(lt, rt, thickness, color),
+    new Line(rt, rb, thickness, color),
+    new Line(rb, lb, thickness, color),
+    new Line(lb, lt, thickness, color),
+  ]
+  
+  perimeterLines.forEach(line => line.draw(ctx));
+}
+
+function drawConnectedComponents(ctx: any, components: Graph[]) {
+  components.forEach(component =>
+    drawPerimeter(ctx, component.vertices as Circle[])
+  );
 }
 
 export default function App() {
@@ -85,9 +118,15 @@ export default function App() {
   const [cursor, setCursor] = useState('default');
 
   useEffect(() => {
-    context.current &&
+    if(!context.current) return;
+
     selectedVertex1.current &&
     selectedVertex1.current.changeColor(context.current);
+
+    if(mode === Modes.connectedComponents) {
+      reDraw();
+      drawConnectedComponents(context.current, g.connectedComponents());
+    }
   }, [mode])
 
   useEffect(() => {
@@ -102,11 +141,19 @@ export default function App() {
 
     context.current = canvasEl.getContext("2d");
 
-    const ctx: any = context.current;
-
     if (!context.current) return;
-    reDraw(ctx, canvasEl.width, canvasEl.height);
+    reDraw();
   }, [width, height])
+
+  const reDraw = () => {
+    if(!canvas.current || !context.current) return;
+
+    context.current.clearRect(0, 0, canvas.current.width, canvas.current.height);
+    circles.forEach(circle => {
+      circle.drawLines(context.current);
+      circle.draw(context.current);
+    })
+  }
 
   const modesValues = Object.values(Modes).filter(mode => !isNaN(Number(mode)));
 
@@ -154,12 +201,7 @@ export default function App() {
       if (!vertex) return;
 
       vertex.updatePosition(mouseX.current, mouseY.current);
-
-      const canvasEl: any = canvas.current;
-
-      if (!canvasEl) return;
-
-      reDraw(context.current, canvasEl.width, canvasEl.height);
+      reDraw();
     }
   }
 
@@ -199,7 +241,7 @@ export default function App() {
           circle.lines = circle.lines.filter(line => line.circle2 !== selectedVertex1.current);
         })
         selectedVertex1.current = undefined;
-        reDraw(context.current, canvas.current.width, canvas.current.height);
+        reDraw();
         break;
 
       case Modes.deleteEdge:
@@ -209,7 +251,7 @@ export default function App() {
         touchEdge.current.delete();
         const i = circles.indexOf(touchEdge.current.circle1);
         circles[i].deleteLine(touchEdge.current);
-        reDraw(context.current, canvas.current.width, canvas.current.height);
+        reDraw();
 
         break;
 

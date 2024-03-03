@@ -53,9 +53,9 @@ export default class Graph {
         firstVertex: Vertex,
         secondVertex: Vertex,
         weight?: number
-    ): Edge | undefined {
+    ): boolean {
         if (firstVertex === secondVertex) {
-            return undefined;
+            return false;
         }
     
         const existsFirstVertex = this.vertices.some((vertex) =>
@@ -67,10 +67,10 @@ export default class Graph {
         );
     
         if (!existsFirstVertex || !existsSecondVertex) {
-            return undefined;
+            return false;
         }
     
-        let result = undefined;
+        let result = false;
     
         this.vertices.forEach((vertex) => {
             if (vertex === firstVertex) {
@@ -79,16 +79,15 @@ export default class Graph {
                 )
     
                 if (repeatedEdge) {
-                    result = undefined;
+                    result = false;
                     return;
                 }
     
                 const target = this.vertices.find((vertex) => vertex === secondVertex);
     
                 if (target) {
-                    const edge = new Edge(target, weight);
-                    vertex.edges.push(edge)
-                    result = edge;
+                    vertex.edges.push(new Edge(target, weight));
+                    result = true;
                 }
             } else if (vertex === secondVertex) {
                 const repeatedEdge = vertex.edges.some((edge) =>
@@ -96,16 +95,15 @@ export default class Graph {
                 )
     
                 if (repeatedEdge) {
-                    result = undefined;
+                    result = false;
                     return;
                 }
     
                 const target = this.vertices.find((vertex) => vertex === firstVertex);
     
                 if (target) {
-                    const edge = new Edge(target, weight);
-                    vertex.edges.push(edge)
-                    result = edge;
+                    vertex.edges.push(new Edge(target, weight));
+                    result = true;
                 }
             }
         })
@@ -164,6 +162,7 @@ export default class Graph {
     }
 
     connectedComponents(): Graph[] {
+        this.clearColors();
         const connectedComponents: Graph[] = []
     
         while (true) {
