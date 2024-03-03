@@ -27,5 +27,5 @@ export function linePointNearestPoint(line: Line, x: number, y: number): Point |
 
     if (t < 0 || t > 1) return undefined;
 
-    return lerpPoints(line.circle1, line.circle1, t);
+    return lerpPoints(line.circle1, line.circle2, t);
 }

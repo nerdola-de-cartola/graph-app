@@ -1,9 +1,9 @@
-import { Line } from "./line"
-import { Vertex } from "./vertex"
+import Line from "./line"
+import Vertex from "./vertex"
 
 const DEFAULT_COLOR = 'green';
 
-export class Circle extends Vertex {
+export default class Circle extends Vertex {
     x: number
     y: number
     radius: number

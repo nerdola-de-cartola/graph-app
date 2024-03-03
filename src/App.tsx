@@ -1,8 +1,7 @@
-import './App.css';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import {  Graph } from './graph.ts';
-import { Line } from './line.ts';
-import { Circle } from './circle.ts';
+import Graph from './graph.ts';
+import Line from './line.ts';
+import Circle from './circle.ts';
 import { linePointNearestPoint } from './geometry.ts';
 
 enum Modes {
@@ -39,7 +38,7 @@ function useWindowSize() {
   return size;
 }
 
-function newVertex(x: number, y: number, name: string, ctx: any) {
+function newVertex(x: number, y: number, ctx: any, name: string = '') {
   const radius = 18;
   const circle = new Circle(name, x, y, radius);
   const newVertex = g.addVertex(circle);
@@ -70,7 +69,7 @@ function reDraw(ctx: any, width: number, height: number) {
   })
 }
 
-function App() {
+export default function App() {
   const canvas = useRef<any>(null);
   const context = useRef<any>(null);
   const mouseX = useRef(0);
@@ -84,6 +83,12 @@ function App() {
   const [width, height] = useWindowSize();
   const [mode, setMode] = useState(Modes.moveVertex);
   const [cursor, setCursor] = useState('default');
+
+  useEffect(() => {
+    context.current &&
+    selectedVertex1.current &&
+    selectedVertex1.current.changeColor(context.current);
+  }, [mode])
 
   useEffect(() => {
     const canvasEl: any = canvas.current;
@@ -118,26 +123,28 @@ function App() {
       return distance <= circle.radius;
     })
 
-    for(const circle of circles) {
+    for (const circle of circles) {
       touchEdge.current = circle.lines.find(line => {
-        
         const linePointNearestMouse = linePointNearestPoint(line, mouseX.current, mouseY.current);
-        if(!linePointNearestMouse) return false;
+
+        // newVertex(linePointNearestMouse?.x, linePointNearestMouse?.y, context.current);
+
+        if (!linePointNearestMouse) return false;
 
         const dx = mouseX.current - linePointNearestMouse.x;
         const dy = mouseY.current - linePointNearestMouse.y;
 
-        const distance = Math.sqrt(dx*dx + dy*dy);
+        const distance = Math.sqrt(dx * dx + dy * dy);
 
         return distance <= line.thickness;
       })
 
-      if(touchEdge.current) break;
+      if (touchEdge.current) break;
     }
 
-    if((touchVertex.current || touchEdge.current)) {
+    if ((touchVertex.current || touchEdge.current)) {
       setCursor("pointer");
-    } else if(cursor !== "default") {
+    } else if (cursor !== "default") {
       setCursor("default");
     }
 
@@ -159,13 +166,9 @@ function App() {
   const mouseClick = (e: any) => {
     // console.log(g)
 
-    // const a = new Circle({name: ''}, mouseX.current, mouseY.current, 15)
-    // a.draw(context.current);
-
-
     switch (mode) {
       case Modes.newVertex:
-        newVertex(mouseX.current, mouseY.current, autoName.current.toString(), context.current)
+        newVertex(mouseX.current, mouseY.current, context.current, autoName.current.toString())
         autoName.current += 1;
         break;
 
@@ -195,11 +198,12 @@ function App() {
         circles.forEach(circle => {
           circle.lines = circle.lines.filter(line => line.circle2 !== selectedVertex1.current);
         })
+        selectedVertex1.current = undefined;
         reDraw(context.current, canvas.current.width, canvas.current.height);
         break;
 
       case Modes.deleteEdge:
-        if(!touchEdge.current) return;
+        if (!touchEdge.current) return;
 
         g.deleteEdge(touchEdge.current.edge);
         const i = circles.indexOf(touchEdge.current.circle1);
@@ -268,5 +272,3 @@ function App() {
     </div>
   );
 }
-
-export default App;

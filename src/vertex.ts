@@ -1,6 +1,6 @@
 import { Colors, Edge } from "./graph"
 
-export class Vertex {
+export default class Vertex {
     name: string
     edges: Edge[]
     textColor: Colors

@@ -1,4 +1,4 @@
-import { Vertex } from "./vertex"
+import Vertex from "./vertex"
 
 export enum Colors {
     blue = "\x1b[36m",
@@ -26,7 +26,7 @@ export interface ExplicityEdge {
     weight: number
 }
 
-export class Graph {
+export default class Graph {
     vertices: Vertex[]
 
     constructor(v: Vertex[] = []) {

@@ -1,9 +1,9 @@
-import { Circle } from "./circle"
+import Circle from "./circle"
 import { Edge } from "./graph"
 
 const DEFAULT_COLOR = 'black';
 
-export class Line {
+export default class Line {
     circle1: Circle
     circle2: Circle
     thickness: number
