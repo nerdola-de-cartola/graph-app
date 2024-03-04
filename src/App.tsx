@@ -6,6 +6,7 @@ import { linePointNearestPoint, distance, Point } from './geometry.ts';
 import VisualGraph from './visual-graph.ts';
 import { depthFirstSearch } from './graph-algorithms.ts';
 import Vertex from './vertex.ts';
+import { count } from 'console';
 
 enum Modes {
   moveVertex,
@@ -45,7 +46,7 @@ function useWindowSize() {
 }
 
 function randomHexadecimalColor() {
-  const color =  Math.floor(Math.random()*16777215).toString(16);
+  const color = Math.floor(Math.random() * 16777215).toString(16);
   return `#${color}`
 }
 
@@ -53,7 +54,7 @@ function drawPerimeter(ctx: any, dots: Circle[]) {
   const thickness = 3;
   const color = randomHexadecimalColor();
 
-  if(dots.length === 0) return;
+  if (dots.length === 0) return;
 
   const minX = Math.min(...dots.map(dot => dot.x));
   const minY = Math.min(...dots.map(dot => dot.y));
@@ -62,10 +63,10 @@ function drawPerimeter(ctx: any, dots: Circle[]) {
 
   const radius = Math.max(...dots.map(dot => dot.radius)) + 10;
 
-  const lt = new Circle('lt', minX-radius, minY-radius, 1);
-  const rt = new Circle('rt', maxX+radius, minY-radius, 1);
-  const rb = new Circle('rb', maxX+radius, maxY+radius, 1);
-  const lb = new Circle('lb', minX-radius, maxY+radius, 1);
+  const lt = new Circle('lt', minX - radius, minY - radius, 1);
+  const rt = new Circle('rt', maxX + radius, minY - radius, 1);
+  const rb = new Circle('rb', maxX + radius, maxY + radius, 1);
+  const lb = new Circle('lb', minX - radius, maxY + radius, 1);
 
   const perimeterLines = [
     new Line(lt, rt, thickness, color),
@@ -73,7 +74,7 @@ function drawPerimeter(ctx: any, dots: Circle[]) {
     new Line(rb, lb, thickness, color),
     new Line(lb, lt, thickness, color),
   ]
-  
+
   perimeterLines.forEach(line => line.draw(ctx));
 }
 
@@ -86,7 +87,7 @@ function drawConnectedComponents(ctx: any, components: Graph[]) {
 export default function App() {
   const canvas = useRef<any>(null);
   const context = useRef<any>(null);
-  const mouse = useRef<Point>({x: 0, y: 0});
+  const mouse = useRef<Point>({ x: 0, y: 0 });
   const isDragging = useRef(false);
   const touchVertex = useRef<Circle | undefined>(undefined);
   const touchEdge = useRef<Line | undefined>(undefined);
@@ -97,24 +98,28 @@ export default function App() {
   const [cursor, setCursor] = useState('default');
 
   useEffect(() => {
-    if(!context.current) return;
+    if (!context.current) return;
 
     selectedVertex1.current &&
-    selectedVertex1.current.changeColor(context.current);
+      selectedVertex1.current.changeColor(context.current);
 
-    if(mode === Modes.connectedComponents) {
+    if (mode === Modes.connectedComponents) {
       reDraw();
       drawConnectedComponents(context.current, g.connectedComponents());
     }
 
-    const vf = (v: Circle) => console.log(v.name); 
-    const sf = (v: Circle) => v.name === '3'; 
 
-    if(mode === Modes.dfs) {
+    if (mode === Modes.dfs) {
+      let count = 0;
+
+      const vf = (v: Circle) => {
+        setTimeout(() => v.outline(context.current), 1000 * count);
+        count++;
+      }
+
       depthFirstSearch({
         graph: g,
         visitFunction: vf as (v: Vertex) => unknown,
-        stopFunction: sf as (v: Vertex) => boolean
       });
     }
   }, [mode])
@@ -137,7 +142,7 @@ export default function App() {
   }, [width, height])
 
   const reDraw = () => {
-    if(!canvas.current || !context.current) return;
+    if (!canvas.current || !context.current) return;
 
     context.current.clearRect(0, 0, canvas.current.width, canvas.current.height);
     g.draw();
@@ -151,7 +156,7 @@ export default function App() {
     mouse.current = {
       x: e.clientX - canvasObj.left,
       y: e.clientY - canvasObj.top
-    } 
+    }
 
     touchVertex.current = g.vertices.find((circle) => {
       return distance(mouse.current, circle) <= circle.radius;

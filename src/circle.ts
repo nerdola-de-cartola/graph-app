@@ -40,4 +40,13 @@ export default class Circle extends Vertex {
     this.x = x;
     this.y = y;
   }
+
+  outline(ctx: any, color: string = 'red') {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius+10, 0, 2 * Math.PI);
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.closePath();
+  }
 }

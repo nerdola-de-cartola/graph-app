@@ -163,7 +163,7 @@ function dfs(
     vertex: Vertex,
     stopFunction: StopFunction,
     visitFunction: VisitFunction
-) {
+): Vertex | undefined {
     vertex.textColor = Colors.blue
     visitFunction(vertex);
 
