@@ -1,9 +1,7 @@
-import Edge from "./edge"
-import { Colors } from "./graph"
+import Graph, { Colors } from "./graph"
 
 export default class Vertex {
     name: string
-    edges: Edge[]
     textColor: Colors
     used?: boolean
     component?: Vertex
@@ -12,29 +10,21 @@ export default class Vertex {
 
     constructor(name: string) {
         this.name = name
-        this.edges = []
         this.textColor = Colors.standard
     }
+}
 
-    degree(): number {
-        return this.edges.length;
+export function degree(g: Graph, v: Vertex): number {
+    let d = 0;
+
+    for(let edge of g.edges) {
+        if(
+            edge.vertex1 === v ||
+            edge.vertex2 === v 
+        ) {
+            d++;
+        }
     }
 
-    printVertex() {
-        console.log(`${this.textColor}${this.name}${Colors.standard} => [`)
-    
-        this.edges.forEach((edge, edgeIndex) => {
-            if (edgeIndex === 0) {
-                process.stdout.write("   ");
-            }
-            else if (edgeIndex < this.edges.length) {
-                process.stdout.write(", ");
-            }
-    
-            process.stdout.write(`${edge.vertex.textColor}${edge.vertex.name}(${edge.weight})${Colors.standard}`);
-        })
-    
-        console.log("")
-        console.log("]")
-    }
+    return d;
 }

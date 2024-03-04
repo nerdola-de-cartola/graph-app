@@ -2,7 +2,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Graph from './graph.ts';
 import Line from './line.ts';
 import Circle from './circle.ts';
-import { linePointNearestPoint } from './geometry.ts';
+import { linePointNearestPoint, distance, Point } from './geometry.ts';
+import VisualGraph from './visual-graph.ts';
 
 enum Modes {
   moveVertex,
@@ -22,8 +23,7 @@ const nameModes = [
   "Highlight connected components"
 ]
 
-const g = new Graph();
-const circles: Circle[] = [];
+const g = new VisualGraph();
 
 function useWindowSize() {
   const [size, setSize] = useState([0, 0]);
@@ -38,29 +38,6 @@ function useWindowSize() {
   }, []);
 
   return size;
-}
-
-function newVertex(x: number, y: number, ctx: any, name: string = '') {
-  const radius = 18;
-  const circle = new Circle(name, x, y, radius);
-  const newVertex = g.addVertex(circle);
-
-  if (!newVertex) return;
-
-  circles.push(circle);
-  circle.draw(ctx);
-}
-
-function newEdge(vertex1: Circle, vertex2: Circle, ctx: any) {
-  const thickness = 3;
-
-  const edge = g.addEdge(vertex1, vertex2);
-
-  if (!edge) return;
-
-  const line = new Line(vertex1, vertex2, thickness);
-  vertex1.addLine(line)
-  vertex1.drawLines(ctx);
 }
 
 function randomHexadecimalColor() {
@@ -105,13 +82,11 @@ function drawConnectedComponents(ctx: any, components: Graph[]) {
 export default function App() {
   const canvas = useRef<any>(null);
   const context = useRef<any>(null);
-  const mouseX = useRef(0);
-  const mouseY = useRef(0);
+  const mouse = useRef<Point>({x: 0, y: 0});
   const isDragging = useRef(false);
   const touchVertex = useRef<Circle | undefined>(undefined);
   const touchEdge = useRef<Line | undefined>(undefined);
   const selectedVertex1 = useRef<Circle | undefined>(undefined);
-  const selectedVertex2 = useRef<Circle | undefined>(undefined);
   const autoName = useRef(0);
   const [width, height] = useWindowSize();
   const [mode, setMode] = useState(Modes.moveVertex);
@@ -140,6 +115,7 @@ export default function App() {
     canvasEl.height = proportion * height;
 
     context.current = canvasEl.getContext("2d");
+    g.ctx = context.current;
 
     if (!context.current) return;
     reDraw();
@@ -149,10 +125,7 @@ export default function App() {
     if(!canvas.current || !context.current) return;
 
     context.current.clearRect(0, 0, canvas.current.width, canvas.current.height);
-    circles.forEach(circle => {
-      circle.drawLines(context.current);
-      circle.draw(context.current);
-    })
+    g.draw();
   }
 
   const modesValues = Object.values(Modes).filter(mode => !isNaN(Number(mode)));
@@ -160,34 +133,20 @@ export default function App() {
   const mouseMove = (e: any) => {
     // @ts-ignore 
     const canvasObj = e.target.getBoundingClientRect();
-    mouseX.current = e.clientX - canvasObj.left;
-    mouseY.current = e.clientY - canvasObj.top;
+    mouse.current = {
+      x: e.clientX - canvasObj.left,
+      y: e.clientY - canvasObj.top
+    } 
 
-    touchVertex.current = circles.find((circle) => {
-      const relativeX = circle.x - mouseX.current;
-      const relativeY = circle.y - mouseY.current;
-      const distance = Math.sqrt(relativeX * relativeX + relativeY * relativeY);
-      return distance <= circle.radius;
+    touchVertex.current = g.vertices.find((circle) => {
+      return distance(mouse.current, circle) <= circle.radius;
     })
 
-    for (const circle of circles) {
-      touchEdge.current = circle.lines.find(line => {
-        const linePointNearestMouse = linePointNearestPoint(line, mouseX.current, mouseY.current);
-
-        // newVertex(linePointNearestMouse?.x, linePointNearestMouse?.y, context.current);
-
-        if (!linePointNearestMouse) return false;
-
-        const dx = mouseX.current - linePointNearestMouse.x;
-        const dy = mouseY.current - linePointNearestMouse.y;
-
-        const distance = Math.sqrt(dx * dx + dy * dy);
-
-        return distance <= line.thickness;
-      })
-
-      if (touchEdge.current) break;
-    }
+    touchEdge.current = g.edges.find(line => {
+      const linePointNearestMouse = linePointNearestPoint(line, mouse.current);
+      if (!linePointNearestMouse) return false;
+      return distance(mouse.current, linePointNearestMouse) <= line.thickness;
+    });
 
     if ((touchVertex.current || touchEdge.current)) {
       setCursor("pointer");
@@ -200,7 +159,7 @@ export default function App() {
 
       if (!vertex) return;
 
-      vertex.updatePosition(mouseX.current, mouseY.current);
+      vertex.updatePosition(mouse.current.x, mouse.current.y);
       reDraw();
     }
   }
@@ -210,7 +169,7 @@ export default function App() {
 
     switch (mode) {
       case Modes.newVertex:
-        newVertex(mouseX.current, mouseY.current, context.current, autoName.current.toString())
+        g.addVertex(new Circle(autoName.current.toString(), mouse.current.x, mouse.current.y))
         autoName.current += 1;
         break;
 
@@ -221,11 +180,9 @@ export default function App() {
           selectedVertex1.current = touchVertex.current;
           selectedVertex1.current.changeColor(context.current, 'red');
         } else {
-          selectedVertex2.current = touchVertex.current;
-          newEdge(selectedVertex1.current, selectedVertex2.current, context.current);
+          g.addEdge(new Line(selectedVertex1.current, touchVertex.current));
           selectedVertex1.current.changeColor(context.current);
           selectedVertex1.current = undefined;
-          selectedVertex2.current = undefined;
         }
 
         break;
@@ -234,12 +191,7 @@ export default function App() {
         if (!touchVertex.current) return;
 
         selectedVertex1.current = touchVertex.current;
-        const indexToErase = circles.indexOf(selectedVertex1.current)
-        circles.splice(indexToErase, 1);
-        g.deleteVertex(selectedVertex1.current.name);
-        circles.forEach(circle => {
-          circle.lines = circle.lines.filter(line => line.circle2 !== selectedVertex1.current);
-        })
+        g.deleteVertex(selectedVertex1.current);
         selectedVertex1.current = undefined;
         reDraw();
         break;
@@ -247,15 +199,8 @@ export default function App() {
       case Modes.deleteEdge:
         if (!touchEdge.current) return;
 
-        
-        touchEdge.current.delete();
-        const i = circles.indexOf(touchEdge.current.circle1);
-        circles[i].deleteLine(touchEdge.current);
+        g.deleteEdge(touchEdge.current);
         reDraw();
-
-        break;
-
-      default:
         break;
     }
   }
@@ -268,9 +213,6 @@ export default function App() {
         selectedVertex1.current = touchVertex.current;
         selectedVertex1.current.changeColor(context.current, 'red')
         isDragging.current = true;
-        break;
-
-      default:
         break;
     }
   }
