@@ -1,4 +1,4 @@
-import Edge, { ExplicityEdge } from "./edge";
+import Edge from "./edge";
 import Graph, { Colors } from "./graph";
 import Vertex from "./vertex";
 
@@ -126,7 +126,7 @@ export function Prim(graph: Graph): Graph {
 
     for (let i = 0; i < graph.vertices.length - 1; i++) {
         // currentVertex.edges.forEach(edge => f(currentVertex, e))
-        for(let edge of currentVertex.edges) {
+        for (let edge of currentVertex.edges) {
             addEdgeToAvailableEdges(currentVertex, edge);
         }
 
@@ -155,39 +155,68 @@ export function Prim(graph: Graph): Graph {
     return mst;
 }
 
-function dfsPath(vertex: Vertex) {
+type StopFunction = (v: Vertex) => boolean;
+type VisitFunction = (v: Vertex) => unknown;
+
+function dfs(
+    graph: Graph,
+    vertex: Vertex,
+    stopFunction: StopFunction,
+    visitFunction: VisitFunction
+) {
     vertex.textColor = Colors.blue
+    visitFunction(vertex);
 
-    const length = vertex.edges.length
-
-    for (let index = 0; index < length; index++) {
-        const nextVertex = vertex.edges[index].vertex;
-
-        if (nextVertex.textColor !== Colors.blue) {
-            nextVertex.previousVertex = vertex;
-            dfsPath(nextVertex);
-        }
-    }
-}
-
-function dfs(vertex: Vertex, name: string): Vertex | undefined {
-    vertex.textColor = Colors.blue
-
-    if (vertex.name === name) {
+    if (stopFunction(vertex)) {
         return vertex;
     }
 
-    const length = vertex.edges.length
+    const edges = graph.incidentEdges(vertex);
+    let result = undefined;
 
-    for (let index = 0; index < length; index++) {
-        const nextVertex = vertex.edges[index].vertex;
-
-        if (nextVertex.textColor !== Colors.blue) {
-            return dfs(nextVertex, name);
-        }
+    for (let edge of edges) {
+        const nextVertex = graph.otherVertex(edge, vertex);
+        if (nextVertex.textColor === Colors.blue) continue;
+        result = dfs(graph, nextVertex, stopFunction, visitFunction);
+        if(result) return result;
     }
 
     return;
+}
+
+const defaultStopFunction = () => false;
+const defaultVisitFunction = () => undefined;
+
+interface SearchType {
+    graph: Graph,
+    startVertex?: Vertex,
+    stopFunction?: StopFunction,
+    visitFunction?: VisitFunction
+}
+
+export function depthFirstSearch({
+    graph,
+    startVertex,
+    stopFunction = defaultStopFunction,
+    visitFunction = defaultVisitFunction
+}: SearchType) {
+    if (graph.vertices.length === 0) return
+
+    if (!startVertex) {
+        startVertex = graph.vertices[0];
+    }
+
+    graph.clearColors();
+    return dfs(graph, startVertex, stopFunction, visitFunction);
+}
+
+export function breadthFirstSearch(graph: Graph, name: string): Vertex | undefined {
+    const start = graph.vertices[0];
+
+    graph.clearColors();
+    const vertex = bfs(start, name, []);
+
+    return vertex;
 }
 
 function bfs(vertex: Vertex, name: string, queue: Vertex[]): Vertex | undefined {
@@ -215,50 +244,6 @@ function bfs(vertex: Vertex, name: string, queue: Vertex[]): Vertex | undefined 
     const nextVertex = queue.shift();
 
     return nextVertex ? bfs(nextVertex, name, queue) : undefined;
-}
-
-export function depthFirstPath(graph: Graph, name: string, keepColors = false) {
-    const start = graph.vertices.find(vertex => vertex.name === name);
-
-    if (!start) {
-        throw new Error("Could not find vertex " + name);
-    }
-
-    start.previousVertex = null;
-
-    graph.clearColors();
-
-    dfsPath(start);
-
-    if (!keepColors) {
-        graph.clearColors();
-    }
-}
-
-export function depthFirstSearch(graph: Graph, name: string, keepColors = false): Vertex | undefined {
-    const start = graph.vertices[0];
-
-    graph.clearColors();
-    const vertex = dfs(start, name);
-
-    if (!keepColors) {
-        graph.clearColors();
-    }
-
-    return vertex;
-}
-
-export function breadthFirstSearch(graph: Graph, name: string, keepColors = false): Vertex | undefined {
-    const start = graph.vertices[0];
-
-    graph.clearColors();
-    const vertex = bfs(start, name, []);
-
-    if (!keepColors) {
-        graph.clearColors();
-    }
-
-    return vertex;
 }
 
 export function dijkstra(graph: Graph, startVertex: Vertex) {

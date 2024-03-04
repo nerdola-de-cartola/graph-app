@@ -17,8 +17,8 @@ export default class VisualGraph extends Graph {
   draw() {
     if(!this.ctx) return;
 
-    this.vertices.forEach(v => v.draw(this.ctx));
     this.edges.forEach(e => e.draw(this.ctx));
+    this.vertices.forEach(v => v.draw(this.ctx));
   }
 
   addVertex(newVertex: Circle): boolean {

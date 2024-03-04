@@ -4,6 +4,8 @@ import Line from './line.ts';
 import Circle from './circle.ts';
 import { linePointNearestPoint, distance, Point } from './geometry.ts';
 import VisualGraph from './visual-graph.ts';
+import { depthFirstSearch } from './graph-algorithms.ts';
+import Vertex from './vertex.ts';
 
 enum Modes {
   moveVertex,
@@ -11,7 +13,8 @@ enum Modes {
   newEdge,
   deleteVertex,
   deleteEdge,
-  connectedComponents
+  connectedComponents,
+  dfs
 }
 
 const nameModes = [
@@ -20,7 +23,8 @@ const nameModes = [
   "Add edge",
   "Delete vertex",
   "Delete edge",
-  "Highlight connected components"
+  "Highlight connected components",
+  "Highlight dfs",
 ]
 
 const g = new VisualGraph();
@@ -101,6 +105,17 @@ export default function App() {
     if(mode === Modes.connectedComponents) {
       reDraw();
       drawConnectedComponents(context.current, g.connectedComponents());
+    }
+
+    const vf = (v: Circle) => console.log(v.name); 
+    const sf = (v: Circle) => v.name === '3'; 
+
+    if(mode === Modes.dfs) {
+      depthFirstSearch({
+        graph: g,
+        visitFunction: vf as (v: Vertex) => unknown,
+        stopFunction: sf as (v: Vertex) => boolean
+      });
     }
   }, [mode])
 
