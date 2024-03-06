@@ -17,7 +17,8 @@ enum Modes {
   deleteEdge,
   connectedComponents,
   dfs,
-  bfs
+  bfs,
+  bipartiteGraph
 }
 
 const nameModes = [
@@ -29,6 +30,7 @@ const nameModes = [
   "Highlight connected components",
   "Highlight dfs",
   "Highlight bfs",
+  "Bipartite graph?"
 ]
 
 const g = new VisualGraph();
@@ -98,6 +100,7 @@ export default function App() {
   const autoName = useRef(0);
   const [width, height] = useWindowSize();
   const [mode, setMode] = useState(Modes.moveVertex);
+  const [text, setText] = useState("");
   const [cursor, setCursor] = useState('default');
 
   useEffect(() => {
@@ -140,6 +143,10 @@ export default function App() {
         searchAlgorithm: bfs,
         visitFunction: vf as (v: Vertex) => unknown,
       });
+    }
+
+    if (mode === Modes.bipartiteGraph) {
+      setText(g.bipartiteGraph() ? "TRUE" : "FALSE");
     }
   }, [mode])
 
@@ -281,6 +288,7 @@ export default function App() {
           </button>
         )}
       </div>
+      {text && <div className='textContainer'>{text}</div>}
       <div
         className='canvasContainer'
       >

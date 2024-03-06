@@ -120,23 +120,23 @@ export default class Graph {
                         vertex.textColor = Colors.blue;
                     }
 
-                    vertex.edges.forEach((edge) => {
-                        if (edge.vertex.textColor !== Colors.standard)
+                    this.neighbors(vertex).forEach(neighbor => {
+                        if (neighbor.textColor !== Colors.standard)
                             return;
 
-                        edge.vertex.textColor = vertex.textColor === Colors.blue
+                        neighbor.textColor = vertex.textColor === Colors.blue
                             ? Colors.red
                             : Colors.blue;
 
-                        queue.push(edge.vertex)
+                        queue.push(neighbor)
                     })
                 }
             }
         }
 
         return this.vertices.every((vertex) =>
-            vertex.edges.every((edge) =>
-                edge.vertex.textColor !== vertex.textColor
+            this.neighbors(vertex).every(neighbor =>
+                neighbor.textColor !== vertex.textColor
             )
         );
     }
