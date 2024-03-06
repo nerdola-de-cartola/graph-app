@@ -77,8 +77,6 @@ export default function App() {
   const [cursor, setCursor] = useState('default');
 
   useEffect(() => {
-    if (text !== "") setText("");
-
     if (!context.current) return;
 
     if (selectedVertex1.current) {
@@ -89,7 +87,28 @@ export default function App() {
     reDraw();
 
     switch (mode) {
+      case Modes.moveVertex:
+        setText("CLICK AND DRAG THE DESIRED VERTEX");
+        break;
+
+      case Modes.newVertex:
+        setText("CLICK TO ADD NEW VERTEX");
+        break;
+
+      case Modes.newEdge:
+        setText("SELECT FIRST VERTEX");
+        break;
+
+      case Modes.deleteVertex:
+        setText("SELECT VERTEX TO REMOVE");
+        break;
+
+      case Modes.deleteEdge:
+        setText("SELECT EDGE TO REMOVE");
+        break;
+
       case Modes.connectedComponents:
+        setText("EACH COLORED SQUARE REPRESENTS A CONNECTED COMPONENT");
         drawConnectedComponents(context.current, g.connectedComponents());
         break;
 
@@ -182,10 +201,12 @@ export default function App() {
         if (!selectedVertex1.current) {
           selectedVertex1.current = touchVertex.current;
           selectedVertex1.current.changeColor(context.current, 'red');
+          setText("SELECT SECOND VERTEX");
         } else {
           g.addEdge(new Line(selectedVertex1.current, touchVertex.current));
           selectedVertex1.current.changeColor(context.current);
           selectedVertex1.current = undefined;
+          setText("SELECT FIRST VERTEX");
         }
 
         break;
@@ -209,12 +230,14 @@ export default function App() {
       case Modes.dfs:
         if (!touchVertex.current) return;
 
+        setText("RUNNING DFS");
         drawPath(context.current, dfs, touchVertex.current);
         break;
 
       case Modes.bfs:
         if (!touchVertex.current) return;
 
+        setText("RUNNING BFS");
         drawPath(context.current, bfs, touchVertex.current);
         break;
     }
