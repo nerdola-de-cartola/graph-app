@@ -34,6 +34,7 @@ const nameModes = [
 ]
 
 const g = new VisualGraph();
+const animationList: any = [];
 
 function randomHexadecimalColor() {
   const color = Math.floor(Math.random() * 16777215).toString(16);
@@ -44,22 +45,6 @@ function drawConnectedComponents(ctx: any, components: Graph[]) {
   components.forEach(component =>
     drawPerimeter(ctx, component.vertices as Circle[], randomHexadecimalColor())
   );
-}
-
-function drawPath(ctx: any, f: any, startVertex: Vertex) {
-  let count = 0;
-
-  const vf = (v: Circle) => {
-    setTimeout(() => v.outline(ctx), 1000 * count);
-    count++;
-  }
-
-  search({
-    graph: g,
-    startVertex,
-    searchAlgorithm: f,
-    visitFunction: vf as (v: Vertex) => unknown,
-  });
 }
 
 export default function App() {
@@ -75,6 +60,30 @@ export default function App() {
   const [mode, setMode] = useState(Modes.moveVertex);
   const [text, setText] = useState("");
   const [cursor, setCursor] = useState('default');
+
+  let startTime = useRef(performance.now());
+  let currentDuration = useRef(0);
+
+  const update = () => {
+    const now = performance.now();
+    const elapsedTime = now - startTime.current;
+
+    if (elapsedTime >= currentDuration.current) {
+      const item = animationList.shift();
+
+      if (!item) return;
+
+      const { obj, animation, params, duration } = item;
+      obj.animation = animation;
+      obj.animation(...params);
+      startTime.current = performance.now();
+      currentDuration.current = duration;
+    }
+
+    requestAnimationFrame(update);
+  }
+
+  requestAnimationFrame(update)
 
   useEffect(() => {
     if (!context.current) return;
@@ -148,6 +157,35 @@ export default function App() {
 
     context.current.clearRect(0, 0, canvas.current.width, canvas.current.height);
     g.draw();
+  }
+
+  const drawPath = (ctx: any, f: any, startVertex: Vertex) => {
+    reDraw();
+
+    const r = search({
+      graph: g,
+      startVertex,
+      searchAlgorithm: f
+    });
+
+    const path = r as Circle[];
+    path.forEach((vertex: Circle, index: number) => {
+      let animation = vertex.outline;
+
+      if (index === path.length - 1) { //last animation
+        animation = (ctx) => {
+          setText("SELECT START VERTEX");
+          vertex.outline(ctx);
+        }
+      }
+
+      animationList.push({
+        obj: vertex,
+        animation,
+        params: [ctx],
+        duration: 1000
+      })
+    })
   }
 
   const modesValues = Object.values(Modes).filter(mode => !isNaN(Number(mode)));

@@ -199,14 +199,14 @@ export function Prim(graph: Graph): Graph {
 
 interface SearchAlgorithmType {
     graph: Graph,
-    vertex: Vertex,
+    startVertex: Vertex,
     stopFunction?: StopFunction,
     visitFunction?: VisitFunction
 }
 
 interface SearchType {
     graph: Graph,
-    searchAlgorithm: (s: SearchAlgorithmType) => Vertex | undefined
+    searchAlgorithm: (s: SearchAlgorithmType) => Vertex[]
     startVertex?: Vertex,
     stopFunction?: StopFunction,
     visitFunction?: VisitFunction
@@ -225,64 +225,73 @@ export function search({
     stopFunction = defaultStopFunction,
     visitFunction = defaultVisitFunction
 }: SearchType) {
-    if (graph.vertices.length === 0) return
+    // if (graph.vertices.length === 0) return 
 
     if (!startVertex) {
         startVertex = graph.vertices[0];
     }
 
     graph.clearColors();
-    return searchAlgorithm({ graph, vertex: startVertex, stopFunction, visitFunction });
+    return searchAlgorithm({ graph, startVertex, stopFunction, visitFunction });
 }
 
 export function dfs({
     graph,
-    vertex,
+    startVertex,
     stopFunction = defaultStopFunction,
     visitFunction = defaultVisitFunction
-}: SearchAlgorithmType): Vertex | undefined {
-    visitFunction(vertex);
-    vertex.textColor = Colors.blue
+}: SearchAlgorithmType): Vertex[] {
+    const path: Vertex[] = [];
 
-    if (stopFunction(vertex)) {
-        return vertex;
+    const recursiveFunction = (vertex: Vertex): Vertex | undefined => {
+        visitFunction(vertex);
+        path.push(vertex);
+        vertex.textColor = Colors.blue
+
+        if (stopFunction(vertex)) {
+            return vertex;
+        }
+    
+        const neighbors = graph.neighbors(vertex);
+    
+        let result = undefined;
+        for (const nextVertex of neighbors) {
+            if (nextVertex.textColor === Colors.blue) continue;
+    
+            result = recursiveFunction(nextVertex);
+            if (result) return result;
+        }
+
     }
 
+    recursiveFunction(startVertex);
 
-    const neighbors = graph.neighbors(vertex);
-
-    let result = undefined;
-    for (const nextVertex of neighbors) {
-        if (nextVertex.textColor === Colors.blue) continue;
-
-        result = dfs({ graph, vertex: nextVertex, stopFunction, visitFunction });
-        if (result) return result;
-    }
-
-    return;
+    return path;
 }
 
 export function bfs({
     graph,
-    vertex,
+    startVertex,
     stopFunction = defaultStopFunction,
     visitFunction = defaultVisitFunction
-}: SearchAlgorithmType): Vertex | undefined {
+}: SearchAlgorithmType): Vertex[] {
     const queue: Vertex[] = [];
+    const path: Vertex[] = [];
 
-    const recursiveFunction = (v: Vertex): Vertex | undefined => {
-        visitFunction(v);
-        v.textColor = Colors.blue;
+    const recursiveFunction = (vertex: Vertex): Vertex | undefined => {
+        visitFunction(vertex);
+        path.push(vertex)
+        vertex.textColor = Colors.blue;
 
-        if (stopFunction(v)) {
-            return v;
+        if (stopFunction(vertex)) {
+            return vertex;
         }
 
-        graph.neighbors(v).forEach(searchVertex => {
-            if (searchVertex.textColor !== Colors.standard) return;
+        graph.neighbors(vertex).forEach(neighbor => {
+            if (neighbor.textColor !== Colors.standard) return;
     
-            queue.push(searchVertex);
-            searchVertex.textColor = Colors.red;
+            queue.push(neighbor);
+            neighbor.textColor = Colors.red;
 
         });
 
@@ -290,5 +299,7 @@ export function bfs({
         return nextVertex ? recursiveFunction(nextVertex) : undefined;
     }
 
-    return recursiveFunction(vertex);
+    recursiveFunction(startVertex);
+
+    return path;
 }
