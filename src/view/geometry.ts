@@ -1,3 +1,4 @@
+import Circle from "./circle";
 import Line from "./line";
 
 export class Point {
@@ -37,3 +38,31 @@ export function linePointNearestPoint(line: Line, a: Point): Point | undefined {
 
     return lerpPoints(line.vertex1, line.vertex2, t);
 }
+
+export function drawPerimeter(ctx: any, dots: Circle[], color: string) {
+    const thickness = 3;
+    // const color = randomHexadecimalColor();
+  
+    if (dots.length === 0) return;
+  
+    const minX = Math.min(...dots.map(dot => dot.x));
+    const minY = Math.min(...dots.map(dot => dot.y));
+    const maxX = Math.max(...dots.map(dot => dot.x));
+    const maxY = Math.max(...dots.map(dot => dot.y));
+  
+    const radius = Math.max(...dots.map(dot => dot.radius)) + 10;
+  
+    const lt = new Circle('lt', minX - radius, minY - radius, 1);
+    const rt = new Circle('rt', maxX + radius, minY - radius, 1);
+    const rb = new Circle('rb', maxX + radius, maxY + radius, 1);
+    const lb = new Circle('lb', minX - radius, maxY + radius, 1);
+  
+    const perimeterLines = [
+      new Line(lt, rt, thickness, color),
+      new Line(rt, rb, thickness, color),
+      new Line(rb, lb, thickness, color),
+      new Line(lb, lt, thickness, color),
+    ]
+  
+    perimeterLines.forEach(line => line.draw(ctx));
+  }

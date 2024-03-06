@@ -1,13 +1,13 @@
 import './index.css';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Graph from '../graph/graph.ts';
 import Line from '../view/line.ts';
 import Circle from '../view/circle.ts';
-import { linePointNearestPoint, distance, Point } from '../view/geometry.ts';
+import { linePointNearestPoint, distance, Point, drawPerimeter } from '../view/geometry.ts';
 import VisualGraph from '../view/visual-graph.ts';
 import Vertex from '../graph/vertex.ts';
 import { bfs, dfs, search } from '../graph/graph-algorithms.ts';
-
+import useWindowSize from '../hooks/useWindowSize.ts';
 
 enum Modes {
   moveVertex,
@@ -35,58 +35,30 @@ const nameModes = [
 
 const g = new VisualGraph();
 
-function useWindowSize() {
-  const [size, setSize] = useState([0, 0]);
-
-  useLayoutEffect(() => {
-    function updateSize() {
-      setSize([window.innerWidth, window.innerHeight]);
-    }
-    window.addEventListener('resize', updateSize);
-    updateSize();
-    return () => window.removeEventListener('resize', updateSize);
-  }, []);
-
-  return size;
-}
-
 function randomHexadecimalColor() {
   const color = Math.floor(Math.random() * 16777215).toString(16);
   return `#${color}`
 }
 
-function drawPerimeter(ctx: any, dots: Circle[]) {
-  const thickness = 3;
-  const color = randomHexadecimalColor();
-
-  if (dots.length === 0) return;
-
-  const minX = Math.min(...dots.map(dot => dot.x));
-  const minY = Math.min(...dots.map(dot => dot.y));
-  const maxX = Math.max(...dots.map(dot => dot.x));
-  const maxY = Math.max(...dots.map(dot => dot.y));
-
-  const radius = Math.max(...dots.map(dot => dot.radius)) + 10;
-
-  const lt = new Circle('lt', minX - radius, minY - radius, 1);
-  const rt = new Circle('rt', maxX + radius, minY - radius, 1);
-  const rb = new Circle('rb', maxX + radius, maxY + radius, 1);
-  const lb = new Circle('lb', minX - radius, maxY + radius, 1);
-
-  const perimeterLines = [
-    new Line(lt, rt, thickness, color),
-    new Line(rt, rb, thickness, color),
-    new Line(rb, lb, thickness, color),
-    new Line(lb, lt, thickness, color),
-  ]
-
-  perimeterLines.forEach(line => line.draw(ctx));
-}
-
 function drawConnectedComponents(ctx: any, components: Graph[]) {
   components.forEach(component =>
-    drawPerimeter(ctx, component.vertices as Circle[])
+    drawPerimeter(ctx, component.vertices as Circle[], randomHexadecimalColor())
   );
+}
+
+function drawPath(ctx: any, f: any) {
+  let count = 0;
+
+  const vf = (v: Circle) => {
+    setTimeout(() => v.outline(ctx), 1000 * count);
+    count++;
+  }
+
+  search({
+    graph: g,
+    searchAlgorithm: f,
+    visitFunction: vf as (v: Vertex) => unknown,
+  });
 }
 
 export default function App() {
@@ -109,44 +81,24 @@ export default function App() {
     selectedVertex1.current &&
       selectedVertex1.current.changeColor(context.current);
 
-    if (mode === Modes.connectedComponents) {
-      reDraw();
-      drawConnectedComponents(context.current, g.connectedComponents());
-    }
+    reDraw();
 
+    switch (mode) {
+      case Modes.connectedComponents:
+        drawConnectedComponents(context.current, g.connectedComponents());
+        break;
 
-    if (mode === Modes.dfs) {
-      let count = 0;
+      case Modes.dfs:
+        drawPath(context.current, dfs);
+        break;
 
-      const vf = (v: Circle) => {
-        setTimeout(() => v.outline(context.current), 1000 * count);
-        count++;
-      }
+      case Modes.bfs:
+        drawPath(context.current, bfs);
+        break;
 
-      search({
-        graph: g,
-        searchAlgorithm: dfs,
-        visitFunction: vf as (v: Vertex) => unknown,
-      });
-    }
-
-    if (mode === Modes.bfs) {
-      let count = 0;
-
-      const vf = (v: Circle) => {
-        setTimeout(() => v.outline(context.current), 1000 * count);
-        count++;
-      }
-
-      search({
-        graph: g,
-        searchAlgorithm: bfs,
-        visitFunction: vf as (v: Vertex) => unknown,
-      });
-    }
-
-    if (mode === Modes.bipartiteGraph) {
-      setText(g.bipartiteGraph() ? "TRUE" : "FALSE");
+      case Modes.bipartiteGraph:
+        setText(g.bipartiteGraph() ? "TRUE" : "FALSE");
+        break;
     }
   }, [mode])
 
