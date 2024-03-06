@@ -46,7 +46,7 @@ function drawConnectedComponents(ctx: any, components: Graph[]) {
   );
 }
 
-function drawPath(ctx: any, f: any) {
+function drawPath(ctx: any, f: any, startVertex: Vertex) {
   let count = 0;
 
   const vf = (v: Circle) => {
@@ -56,6 +56,7 @@ function drawPath(ctx: any, f: any) {
 
   search({
     graph: g,
+    startVertex,
     searchAlgorithm: f,
     visitFunction: vf as (v: Vertex) => unknown,
   });
@@ -76,10 +77,14 @@ export default function App() {
   const [cursor, setCursor] = useState('default');
 
   useEffect(() => {
+    if (text !== "") setText("");
+
     if (!context.current) return;
 
-    selectedVertex1.current &&
+    if (selectedVertex1.current) {
       selectedVertex1.current.changeColor(context.current);
+      selectedVertex1.current = undefined;
+    }
 
     reDraw();
 
@@ -89,11 +94,11 @@ export default function App() {
         break;
 
       case Modes.dfs:
-        drawPath(context.current, dfs);
+        setText("SELECT START VERTEX");
         break;
 
       case Modes.bfs:
-        drawPath(context.current, bfs);
+        setText("SELECT START VERTEX");
         break;
 
       case Modes.bipartiteGraph:
@@ -199,6 +204,18 @@ export default function App() {
 
         g.deleteEdge(touchEdge.current);
         reDraw();
+        break;
+
+      case Modes.dfs:
+        if (!touchVertex.current) return;
+
+        drawPath(context.current, dfs, touchVertex.current);
+        break;
+
+      case Modes.bfs:
+        if (!touchVertex.current) return;
+
+        drawPath(context.current, bfs, touchVertex.current);
         break;
     }
   }
