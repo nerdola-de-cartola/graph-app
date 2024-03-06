@@ -5,8 +5,8 @@ import Line from '../view/line.ts';
 import Circle from '../view/circle.ts';
 import { linePointNearestPoint, distance, Point } from '../view/geometry.ts';
 import VisualGraph from '../view/visual-graph.ts';
-import { depthFirstSearch } from '../graph/graph-algorithms.ts';
 import Vertex from '../graph/vertex.ts';
+import { bfs, dfs, search } from '../graph/graph-algorithms.ts';
 
 
 enum Modes {
@@ -16,7 +16,8 @@ enum Modes {
   deleteVertex,
   deleteEdge,
   connectedComponents,
-  dfs
+  dfs,
+  bfs
 }
 
 const nameModes = [
@@ -27,6 +28,7 @@ const nameModes = [
   "Delete edge",
   "Highlight connected components",
   "Highlight dfs",
+  "Highlight bfs",
 ]
 
 const g = new VisualGraph();
@@ -118,8 +120,24 @@ export default function App() {
         count++;
       }
 
-      depthFirstSearch({
+      search({
         graph: g,
+        searchAlgorithm: dfs,
+        visitFunction: vf as (v: Vertex) => unknown,
+      });
+    }
+
+    if (mode === Modes.bfs) {
+      let count = 0;
+
+      const vf = (v: Circle) => {
+        setTimeout(() => v.outline(context.current), 1000 * count);
+        count++;
+      }
+
+      search({
+        graph: g,
+        searchAlgorithm: bfs,
         visitFunction: vf as (v: Vertex) => unknown,
       });
     }
