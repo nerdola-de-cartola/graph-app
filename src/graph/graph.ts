@@ -85,6 +85,11 @@ export default class Graph {
         return e.vertex1 !== v ? e.vertex1 : e.vertex2;
     }
 
+    neighbors(vertex: Vertex): Vertex[] {
+        const edgesOfVertex = this.incidentEdges(vertex);
+        return edgesOfVertex.map(edge => this.otherVertex(edge, vertex));
+    }
+
     degree(): number {
         const sum = this
             .vertices
@@ -158,11 +163,7 @@ export default class Graph {
                         vertex.textColor = Colors.blue;
                     }
 
-                    const edge = this.incidentEdges(vertex);
-
-                    edge.forEach((edge) => {
-                        const v = this.otherVertex(edge, vertex)
-
+                    this.neighbors(vertex).forEach(v => {
                         if (v.textColor !== Colors.standard)
                             return;
 
@@ -171,7 +172,7 @@ export default class Graph {
                             : Colors.blue;
 
                         queue.push(v);
-                    })
+                    });
                 }
             }
 

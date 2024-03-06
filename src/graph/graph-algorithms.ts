@@ -248,12 +248,13 @@ export function dfs({
         return vertex;
     }
 
-    const edges = graph.incidentEdges(vertex);
-    let result = undefined;
 
-    for (let edge of edges) {
-        const nextVertex = graph.otherVertex(edge, vertex);
+    const neighbors = graph.neighbors(vertex);
+
+    let result = undefined;
+    for (const nextVertex of neighbors) {
         if (nextVertex.textColor === Colors.blue) continue;
+
         result = dfs({ graph, vertex: nextVertex, stopFunction, visitFunction });
         if (result) return result;
     }
@@ -277,19 +278,15 @@ export function bfs({
             return v;
         }
 
-        const edges = graph.incidentEdges(v);
+        graph.neighbors(v).forEach(searchVertex => {
+            if (searchVertex.textColor !== Colors.standard) return;
+    
+            queue.push(searchVertex);
+            searchVertex.textColor = Colors.red;
 
-        for (const edge of edges) {
-            const searchVertex = graph.otherVertex(edge, v);
-
-            if (searchVertex.textColor === Colors.standard) {
-                queue.push(searchVertex);
-                searchVertex.textColor = Colors.red;
-            }
-        }
+        });
 
         const nextVertex = queue.shift();
-
         return nextVertex ? recursiveFunction(nextVertex) : undefined;
     }
 
