@@ -1,5 +1,5 @@
 import Circle from "./circle"
-import Edge from "./edge";
+import Edge from "../graph/edge";
 
 const DEFAULT_COLOR = 'black';
 

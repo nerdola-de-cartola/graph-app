@@ -1,5 +1,5 @@
 import Line from "./line"
-import Vertex from "./vertex"
+import Vertex from "../graph/vertex"
 
 const DEFAULT_COLOR = 'green';
 

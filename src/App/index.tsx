@@ -1,12 +1,13 @@
+import './index.css';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import Graph from './graph.ts';
-import Line from './line.ts';
-import Circle from './circle.ts';
-import { linePointNearestPoint, distance, Point } from './geometry.ts';
-import VisualGraph from './visual-graph.ts';
-import { depthFirstSearch } from './graph-algorithms.ts';
-import Vertex from './vertex.ts';
-import { count } from 'console';
+import Graph from '../graph/graph.ts';
+import Line from '../view/line.ts';
+import Circle from '../view/circle.ts';
+import { linePointNearestPoint, distance, Point } from '../view/geometry.ts';
+import VisualGraph from '../view/visual-graph.ts';
+import { depthFirstSearch } from '../graph/graph-algorithms.ts';
+import Vertex from '../graph/vertex.ts';
+
 
 enum Modes {
   moveVertex,

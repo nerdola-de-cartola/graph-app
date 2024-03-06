@@ -1,5 +1,5 @@
 import Circle from "./circle";
-import Graph from "./graph";
+import Graph from "../graph/graph";
 import Line from "./line";
 
 export default class VisualGraph extends Graph {
