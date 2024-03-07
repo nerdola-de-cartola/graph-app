@@ -1,0 +1,51 @@
+h2 {
+  margin: 0;
+}
+
+button {
+  margin: 0;
+  padding: 0;
+  border: none;
+
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+.App {
+  text-align: center;
+}
+
+.header {
+  margin-top: 20px;
+  ;
+  border: 4px solid black;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: start;
+  gap: 20px
+}
+
+.modeButton {
+  border: 1px solid black;
+  padding: 4px;
+  margin-left: 5px;
+}
+
+.canvasContainer {
+  margin: auto;
+  margin-top: 20px;
+  background-color: black;
+  z-index: -1;
+  padding: 5px;
+  width: fit-content;
+}
+
+.mainCanvas {
+  background-color: white;
+}
+
+.textContainer {
+  margin-top: 20px;
+}

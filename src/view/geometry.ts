@@ -39,7 +39,7 @@ export function linePointNearestPoint(line: Line, a: Point): Point | undefined {
     return lerpPoints(line.vertex1, line.vertex2, t);
 }
 
-export function drawPerimeter(ctx: any, dots: Circle[], color: string) {
+export function drawPerimeter(ctx: CanvasRenderingContext2D, dots: Circle[], color: string) {
     const thickness = 3;
     // const color = randomHexadecimalColor();
   

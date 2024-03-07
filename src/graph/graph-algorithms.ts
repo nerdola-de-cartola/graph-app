@@ -1,5 +1,5 @@
 import Graph, { Colors } from "./graph";
-import Vertex from "./vertex";
+import type Vertex from "./vertex";
 
 /*
 export function Kruskal(graph: Graph): Graph {

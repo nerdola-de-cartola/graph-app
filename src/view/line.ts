@@ -1,4 +1,4 @@
-import Circle from "./circle"
+import type Circle from "./circle";
 import Edge from "../graph/edge";
 
 const DEFAULT_COLOR = 'black';
@@ -17,7 +17,7 @@ export default class Line extends Edge {
       this.color = color;
     }
   
-    draw(ctx: any) {
+    draw(ctx: CanvasRenderingContext2D) {
       ctx.beginPath();
       ctx.strokeStyle = this.color;
       ctx.lineWidth = this.thickness;
@@ -26,7 +26,7 @@ export default class Line extends Edge {
       ctx.stroke();
     }
   
-    changeColor(ctx: any, color: string = DEFAULT_COLOR) {
+    changeColor(ctx: CanvasRenderingContext2D, color: string = DEFAULT_COLOR) {
       this.color = color;
       this.draw(ctx)
     }

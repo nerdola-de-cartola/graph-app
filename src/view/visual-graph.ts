@@ -1,13 +1,13 @@
-import Circle from "./circle";
+import type Circle from "./circle";
 import Graph from "../graph/graph";
-import Line from "./line";
+import type Line from "./line";
 
 export default class VisualGraph extends Graph {
   vertices: Circle[];
   edges: Line[];
-  ctx: any;
+  ctx: CanvasRenderingContext2D;
 
-  constructor(ctx: any = undefined, circles: Circle[] = []) {
+  constructor(ctx: CanvasRenderingContext2D, circles: Circle[] = []) {
     super();
     this.ctx = ctx;
     this.vertices = circles;

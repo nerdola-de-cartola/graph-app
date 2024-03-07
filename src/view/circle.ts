@@ -1,4 +1,3 @@
-import Line from "./line"
 import Vertex from "../graph/vertex"
 
 const DEFAULT_COLOR = 'green';
@@ -17,7 +16,7 @@ export default class Circle extends Vertex {
     this.fillColor = fillColor;
   }
 
-  draw(ctx: any) {
+  draw(ctx: CanvasRenderingContext2D) {
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
     ctx.fillStyle = this.fillColor;
@@ -31,7 +30,7 @@ export default class Circle extends Vertex {
     ctx.fillText(this.name, this.x, this.y + 2);
   }
 
-  changeColor(ctx: any, color: string = DEFAULT_COLOR) {
+  changeColor(ctx: CanvasRenderingContext2D, color: string = DEFAULT_COLOR) {
     this.fillColor = color;
     this.draw(ctx)
   }
@@ -41,7 +40,7 @@ export default class Circle extends Vertex {
     this.y = y;
   }
 
-  outline(ctx: any, color: string = 'red') {
+  outline(ctx: CanvasRenderingContext2D, color: string = 'red') {
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius+10, 0, 2 * Math.PI);
     ctx.strokeStyle = color;

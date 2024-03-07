@@ -1,4 +1,4 @@
-import Vertex from "./vertex"
+import type Vertex from "./vertex"
 
 export default class Edge {
     vertex1: Vertex

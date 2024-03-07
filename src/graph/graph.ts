@@ -1,5 +1,6 @@
-import Edge from "./edge";
-import Vertex, { degree } from "./vertex"
+import type Edge from "./edge";
+import { degree } from "./vertex"
+import type Vertex from "./vertex"
 
 export enum Colors {
     blue = "\x1b[36m",
