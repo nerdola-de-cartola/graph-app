@@ -10,7 +10,8 @@ const nameModes = [
   "Highlight dfs",
   "Highlight bfs",
   "Bipartite graph?",
-  "Highlight dijkstra",
+  "Highlight Dijkstra",
+  "Highlight Kruskal",
 ]
 
 function main() {

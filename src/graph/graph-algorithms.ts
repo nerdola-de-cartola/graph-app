@@ -1,93 +1,86 @@
+import Edge from "./edge";
 import Graph, { Colors } from "./graph";
 import type Vertex from "./vertex";
 
-/*
-export function Kruskal(graph: Graph): Graph {
+export function kruskal(graph: Graph): Graph {
     const mst = new Graph();
-    
-    const availableEdges: ExplicityEdge[] = [];
-    
+
+    const availableEdges: Edge[] = [];
+
     graph.vertices.forEach((vertex) => {
         mst.addVertex(vertex)
-        
-        vertex.edges.forEach((edge) => {
-            
+
+        graph.incidentEdges(vertex).forEach((edge) => {
+            const otherVertex = graph.otherVertex(edge, vertex);
+
             if (edge.used) return;
-            
+
             vertex.component = vertex;
-            edge.vertex.component = edge.vertex;
-            
-            availableEdges.push(new ExplicityEdge(vertex, edge.vertex, edge.weight));
-            
-            const edge2 = edge.vertex.edges.find((edge) => edge.vertex.name === vertex.name);
-            
-            if (!edge2) throw new Error("Aresta inexistente");
-            
+            otherVertex.component = otherVertex;
+            availableEdges.push(new Edge(vertex, otherVertex, edge.weight));
             edge.used = true;
-            edge2.used = true;
         })
     })
-    
+
     availableEdges.sort((edge1, edge2) => edge1.weight - edge2.weight);
-    
+
     const findNextVertices = () => {
         while (availableEdges.length) {
             const explicityEdge = availableEdges[0];
-            
+
             availableEdges.shift();
-            
+
             if (!explicityEdge.vertex1.component || !explicityEdge.vertex2.component) {
                 throw new Error("Could not find next vertices");
             }
-            
+
             if (explicityEdge.vertex1.component.name !== explicityEdge.vertex2.component.name) {
                 return explicityEdge;
             }
         }
-        
+
         throw new Error("Could not find next vertices");
     }
-    
+
     const joinComponents = (
         component1: Vertex | undefined,
         component2: Vertex | undefined
-        ) => {
-            if (!component1 || !component2) {
+    ) => {
+        if (!component1 || !component2) {
+            throw new Error("Could not join components")
+        }
+
+        availableEdges.forEach(({ vertex1, vertex2 }) => {
+            if (!vertex1.component || !vertex2.component) {
                 throw new Error("Could not join components")
             }
-            
-            availableEdges.forEach(({ vertex1, vertex2 }) => {
-                if (!vertex1.component || !vertex2.component) {
-                    throw new Error("Could not join components")
-                }
-                
-                if (vertex1.component.name === component2.name) {
-                    vertex1.component = component1
-                }
-                
-                if (vertex2.component.name === component2.name) {
-                    vertex2.component = component1
-                }
-            })
-        }
-        
-        for (let i = 0; i < graph.vertices.length - 1; i++) {
-            const { vertex1, vertex2, weight } = findNextVertices();
-            
-            mst.addEdge(vertex1, vertex2, weight);
+
+            if (vertex1.component.name === component2.name) {
+                vertex1.component = component1
+            }
+
+            if (vertex2.component.name === component2.name) {
+                vertex2.component = component1
+            }
+        })
+    }
+
+    for (let i = 0; i < graph.vertices.length - 1; i++) {
+        const { vertex1, vertex2, weight } = findNextVertices();
+
+        mst.addEdge(new Edge(vertex1, vertex2, weight));
 
         joinComponents(vertex1.component, vertex2.component)
     }
-    
-    graph.vertices.forEach((vertex) => {
-        vertex.edges.forEach((edge) => {
-            delete edge.used;
-        })
+
+    graph.edges.forEach((edge) => {
+        delete edge.used;
     })
-    
+
     return mst;
 }
 
+/*
 export function Prim(graph: Graph): Graph {
     const mst = new Graph();
 
@@ -182,19 +175,19 @@ export function dijkstra(
 
         graph.incidentEdges(vertex).forEach(edge => {
             const nextVertex = graph.otherVertex(edge, vertex);
-            
+
             if (nextVertex.textColor === Colors.blue) return;
             // console.log(nextVertex);
 
             if (vertex.distance === undefined || nextVertex.distance === undefined) {
                 throw new Error("Could not find distance");
             }
-            
+
             if (nextVertex.distance > vertex.distance + edge.weight) {
                 nextVertex.distance = vertex.distance + edge.weight
                 nextVertex.previousVertex = vertex;
             }
-            
+
             if (nextVertex.textColor === Colors.standard) {
                 nextVertex.textColor = Colors.red;
                 queue.push(nextVertex);

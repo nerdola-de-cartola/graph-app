@@ -1,6 +1,7 @@
 import type Circle from "./circle";
 import Graph from "../graph/graph";
 import type Line from "./line";
+import type Vertex from "src/graph/vertex";
 
 export default class VisualGraph extends Graph {
   vertices: Circle[];
@@ -22,13 +23,17 @@ export default class VisualGraph extends Graph {
   }
 
   addVertex(newVertex: Circle): boolean {
-    this.ctx && newVertex.draw(this.ctx);
+    newVertex.draw(this.ctx);
     return super.addVertex(newVertex);
   }
 
   addEdge(newEdge: Line) {
     const e = super.addEdge(newEdge) as Line;
-    e && this.ctx && e.draw(this.ctx);
+    e && e.draw(this.ctx);
     return e;
+  }
+
+  neighbors(vertex: Vertex): Circle[] {
+    return super.neighbors(vertex) as Circle[];
   }
 }

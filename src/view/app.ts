@@ -4,7 +4,8 @@ import { distance, drawPerimeter, linePointNearestPoint } from "./geometry";
 import type { Point } from "./geometry";
 import Line from "./line";
 import VisualGraph from "./visual-graph";
-import { bfs, dfs, dijkstra, search } from "../graph/graph-algorithms";
+import { bfs, dfs, dijkstra, kruskal, search } from "../graph/graph-algorithms";
+import type Graph from "src/graph/graph";
 
 function randomHexadecimalColor() {
     const color = Math.floor(Math.random() * 16777215).toString(16);
@@ -21,7 +22,8 @@ export enum Modes {
     dfs,
     bfs,
     bipartiteGraph,
-    dijkstra
+    dijkstra,
+    kruskal,
 }
 
 export default class GraphApp {
@@ -159,7 +161,54 @@ export default class GraphApp {
             case Modes.dijkstra:
                 this.setText("SELECT START VERTEX");
                 break;
+
+            case Modes.kruskal:
+                this.drawMst(kruskal);
+                break;
         }
+    }
+
+    drawMst(algo: any) {
+        if (this.graph.connectedComponents().length !== 1) {
+            this.setText("THE GRAPH NEEDS TO BE CONNECTED TO APPLY THIS ALGORITHM")
+            return;
+        }
+
+        const mst: Graph = algo(this.graph);
+
+        if (!mst.vertices.length) return;
+
+        const mstVG = new VisualGraph(this.ctx);
+
+        mst.vertices.forEach(v => mstVG.addVertex(new Circle(v.name, 0, 0)));
+
+        mst.edges.forEach(e => {
+            const c1 = mstVG.vertices.find(c => c.name === e.vertex1.name);
+            const c2 = mstVG.vertices.find(c => c.name === e.vertex2.name);
+
+            if (!c1 || !c2) throw new Error("Could not find circles");
+
+            mstVG.addEdge(new Line(c1, c2));
+        });
+
+        mstVG.vertices[0].x = 500;
+        mstVG.vertices[0].y = 50;
+
+        const space = mstVG.vertices[0].radius / 2;
+
+        mstVG.vertices.forEach(v => {
+            const children = mstVG.neighbors(v).filter(v1 => v1.y === 0)
+            children.forEach((nv, i) => {
+                nv.y = v.y + 50
+                nv.x =
+                    v.x +
+                    (v.radius + space) *
+                    (children.length - 1 - (2 * i))
+            })
+        })
+
+        this.reDraw();
+        mstVG.draw();
     }
 
     drawPath(ctx: CanvasRenderingContext2D, f: any, startVertex: Vertex) {
@@ -290,7 +339,7 @@ export default class GraphApp {
                 const animation = (vertex: Circle) => {
                     vertex.outline(this.ctx);
 
-                    if(vertex.distance !== undefined) {
+                    if (vertex.distance !== undefined) {
                         this.ctx.font = "16px Arial";
                         this.ctx.fillStyle = "red";
                         this.ctx.textBaseline = 'middle';
@@ -301,7 +350,7 @@ export default class GraphApp {
                             vertex.y - vertex.radius - 16
                         );
                     }
-                } 
+                }
 
                 const vf = (vertex: Vertex) => {
                     this.animationList.addAnimation({
