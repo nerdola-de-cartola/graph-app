@@ -153,16 +153,21 @@ export function Prim(graph: Graph): Graph {
     })
     
     return mst;
+*/
 
-    export function dijkstra(graph: Graph, startVertex: Vertex) {
+export function dijkstra(
+    graph: Graph,
+    startVertex: Vertex,
+    visitFunction: VisitFunction = defaultVisitFunction
+) {
+    graph.clearColors();
+
     graph.vertices.forEach((vertex) => {
         vertex.distance = Infinity;
         vertex.previousVertex = null;
     })
 
     startVertex.distance = 0;
-
-    graph.clearColors();
 
     const queue: Vertex[] = [startVertex];
 
@@ -171,22 +176,25 @@ export function Prim(graph: Graph): Graph {
 
         if (!vertex) break;
 
+        visitFunction(vertex);
+
         vertex.textColor = Colors.blue;
 
-        vertex.edges.forEach(edge => {
-            const nextVertex = edge.vertex;
-
+        graph.incidentEdges(vertex).forEach(edge => {
+            const nextVertex = graph.otherVertex(edge, vertex);
+            
             if (nextVertex.textColor === Colors.blue) return;
+            // console.log(nextVertex);
 
             if (vertex.distance === undefined || nextVertex.distance === undefined) {
                 throw new Error("Could not find distance");
             }
-
+            
             if (nextVertex.distance > vertex.distance + edge.weight) {
                 nextVertex.distance = vertex.distance + edge.weight
                 nextVertex.previousVertex = vertex;
             }
-
+            
             if (nextVertex.textColor === Colors.standard) {
                 nextVertex.textColor = Colors.red;
                 queue.push(nextVertex);
@@ -194,8 +202,7 @@ export function Prim(graph: Graph): Graph {
         });
     }
 }
-}
-*/
+
 
 interface SearchAlgorithmType {
     graph: Graph,
@@ -225,8 +232,6 @@ export function search({
     stopFunction = defaultStopFunction,
     visitFunction = defaultVisitFunction
 }: SearchType) {
-    // if (graph.vertices.length === 0) return 
-
     if (!startVertex) {
         startVertex = graph.vertices[0];
     }
@@ -251,13 +256,13 @@ export function dfs({
         if (stopFunction(vertex)) {
             return vertex;
         }
-    
+
         const neighbors = graph.neighbors(vertex);
-    
+
         let result = undefined;
         for (const nextVertex of neighbors) {
             if (nextVertex.textColor === Colors.blue) continue;
-    
+
             result = recursiveFunction(nextVertex);
             if (result) return result;
         }
@@ -289,7 +294,7 @@ export function bfs({
 
         graph.neighbors(vertex).forEach(neighbor => {
             if (neighbor.textColor !== Colors.standard) return;
-    
+
             queue.push(neighbor);
             neighbor.textColor = Colors.red;
 

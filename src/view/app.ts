@@ -4,7 +4,7 @@ import { distance, drawPerimeter, linePointNearestPoint } from "./geometry";
 import type { Point } from "./geometry";
 import Line from "./line";
 import VisualGraph from "./visual-graph";
-import { bfs, dfs, search } from "../graph/graph-algorithms";
+import { bfs, dfs, dijkstra, search } from "../graph/graph-algorithms";
 
 function randomHexadecimalColor() {
     const color = Math.floor(Math.random() * 16777215).toString(16);
@@ -20,7 +20,8 @@ export enum Modes {
     connectedComponents,
     dfs,
     bfs,
-    bipartiteGraph
+    bipartiteGraph,
+    dijkstra
 }
 
 export default class GraphApp {
@@ -89,10 +90,12 @@ export default class GraphApp {
         const oldMode = this.mode;
         this.mode = newMode;
         this.canvas.dispatchEvent(
-            new CustomEvent("onModeChange", {detail: {
-                oldMode,
-                newMode
-            }})
+            new CustomEvent("onModeChange", {
+                detail: {
+                    oldMode,
+                    newMode
+                }
+            })
         );
     }
 
@@ -152,6 +155,10 @@ export default class GraphApp {
             case Modes.bipartiteGraph:
                 this.setText(this.graph.bipartiteGraph() ? "TRUE" : "FALSE");
                 break;
+
+            case Modes.dijkstra:
+                this.setText("SELECT START VERTEX");
+                break;
         }
     }
 
@@ -201,7 +208,7 @@ export default class GraphApp {
         });
 
         if (this.touchVertex || this.touchEdge) {
-            if(this.mode === Modes.moveVertex) {
+            if (this.mode === Modes.moveVertex) {
                 this.setCursor("grab");
             } else {
                 this.setCursor("pointer");
@@ -272,6 +279,42 @@ export default class GraphApp {
                 this.setText("RUNNING BFS");
                 this.drawPath(this.ctx, bfs, this.touchVertex);
                 break;
+
+            case Modes.dijkstra:
+                if (!this.touchVertex) return;
+
+                this.setText("RUNNING DIJKSTRA");
+
+                this.reDraw();
+
+                const animation = (vertex: Circle) => {
+                    vertex.outline(this.ctx);
+
+                    if(vertex.distance !== undefined) {
+                        this.ctx.font = "16px Arial";
+                        this.ctx.fillStyle = "red";
+                        this.ctx.textBaseline = 'middle';
+                        this.ctx.textAlign = "center";
+                        this.ctx.fillText(
+                            `d${vertex.name}=${vertex.distance}`,
+                            vertex.x + vertex.radius + 16,
+                            vertex.y - vertex.radius - 16
+                        );
+                    }
+                } 
+
+                const vf = (vertex: Vertex) => {
+                    this.animationList.addAnimation({
+                        obj: vertex,
+                        animation: () => animation(vertex as Circle),
+                        params: [],
+                        duration: 1000
+                    })
+                }
+
+                dijkstra(this.graph, this.touchVertex, vf);
+
+                break;
         }
     }
 
@@ -298,7 +341,6 @@ export default class GraphApp {
         }
     }
 }
-
 
 interface Animation {
     obj: any

@@ -9,7 +9,8 @@ const nameModes = [
   "Highlight connected components",
   "Highlight dfs",
   "Highlight bfs",
-  "Bipartite graph?"
+  "Bipartite graph?",
+  "Highlight dijkstra",
 ]
 
 function main() {
