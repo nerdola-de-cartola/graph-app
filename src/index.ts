@@ -12,6 +12,7 @@ const nameModes = [
   "Bipartite graph?",
   "Highlight Dijkstra",
   "Highlight Kruskal",
+  "Highlight Prim",
 ]
 
 function main() {

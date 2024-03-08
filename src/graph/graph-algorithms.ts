@@ -80,33 +80,35 @@ export function kruskal(graph: Graph): Graph {
     return mst;
 }
 
-/*
-export function Prim(graph: Graph): Graph {
+
+export function prim(graph: Graph): Graph {
     const mst = new Graph();
 
-    const availableEdges: ExplicityEdge[] = [];
-    
+    const availableEdges: Edge[] = [];
+
     const findNextVertices = () => {
         while (availableEdges.length) {
             const explicityEdge = availableEdges[0];
-            
+
             availableEdges.shift();
-            
+
             if (!explicityEdge.vertex1.used || !explicityEdge.vertex2.used) {
                 return explicityEdge;
             }
         }
-        
+
         throw new Error("Could not find next vertices");
     }
-    
+
     let currentVertex = graph.vertices[0];
     currentVertex.used = true;
-    
-    const addEdgeToAvailableEdges = (currentVertex: Vertex, edge: Edge) => {
-        
+
+    const addEdgeToAvailableEdges = (edge: Edge) => {
         if (edge.used) return;
-        
+
+        availableEdges.push(new Edge(edge.vertex1, edge.vertex2, edge.weight));
+        edge.used;
+        /*
         availableEdges.push(new ExplicityEdge(currentVertex, edge.vertex, edge.weight));
         
         const edge2 = edge.vertex.edges.find((edge) => edge.vertex.name === currentVertex.name);
@@ -115,38 +117,40 @@ export function Prim(graph: Graph): Graph {
         
         edge.used = true;
         edge2.used = true;
+        */
     }
-    
+
     for (let i = 0; i < graph.vertices.length - 1; i++) {
-        // currentVertex.edges.forEach(edge => f(currentVertex, e))
-        for (let edge of currentVertex.edges) {
-            addEdgeToAvailableEdges(currentVertex, edge);
+
+        const edges = graph.incidentEdges(currentVertex);
+        for (const edge of edges) {
+            addEdgeToAvailableEdges(edge);
         }
-        
+
         availableEdges.sort((edge1, edge2) => edge1.weight - edge2.weight);
-        
+
         const { vertex1, vertex2, weight } = findNextVertices();
-        
+
         mst.addVertex(vertex1);
         mst.addVertex(vertex2);
-        mst.addEdge(vertex1, vertex2, weight);
-        
+        mst.addEdge(new Edge(vertex1, vertex2, weight));
+
         currentVertex = vertex1.used ? vertex2 : vertex1;
-        
+
         vertex1.used = true;
         vertex2.used = true;
     }
-    
+
     graph.vertices.forEach((vertex) => {
         delete vertex.used;
-        
-        vertex.edges.forEach((edge) => {
-            delete edge.used;
-        })
     })
-    
+
+    graph.edges.forEach((edge) => {
+        delete edge.used;
+    })
+
     return mst;
-*/
+}
 
 export function dijkstra(
     graph: Graph,

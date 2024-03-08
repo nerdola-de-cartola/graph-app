@@ -4,7 +4,7 @@ import { distance, drawPerimeter, linePointNearestPoint } from "./geometry";
 import type { Point } from "./geometry";
 import Line from "./line";
 import VisualGraph from "./visual-graph";
-import { bfs, dfs, dijkstra, kruskal, search } from "../graph/graph-algorithms";
+import { bfs, dfs, dijkstra, kruskal, prim, search } from "../graph/graph-algorithms";
 import type Graph from "src/graph/graph";
 
 function randomHexadecimalColor() {
@@ -24,6 +24,7 @@ export enum Modes {
     bipartiteGraph,
     dijkstra,
     kruskal,
+    prim,
 }
 
 export default class GraphApp {
@@ -164,6 +165,10 @@ export default class GraphApp {
 
             case Modes.kruskal:
                 this.drawMst(kruskal);
+                break;
+
+            case Modes.prim:
+                this.drawMst(prim);
                 break;
         }
     }
